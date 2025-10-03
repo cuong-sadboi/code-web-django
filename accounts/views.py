@@ -1,7 +1,8 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect, get_object_or_404
 import requests.utils
-from .forms import RegistrationForm
-from .models import Account
+from .forms import RegistrationForm, UserForm, UserProfileForm
+from .models import Account, UserProfile
+from orders.models import Order, OrderProduct
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -36,7 +37,7 @@ def register(request):
 
             #USER ACTIVATION
             current_site = get_current_site(request)
-            mail_subject = 'Please activate your account'
+            mail_subject = 'Hãy kích hoạt tài khoản của bạn'
             message = render_to_string('accounts/account_verification_email.html', {
                 'user': user,
                 'domain': current_site,
@@ -104,7 +105,7 @@ def login(request):
             except:
                 pass
             auth.login(request, user)
-            messages.success(request,'You are now logged in.')
+            messages.success(request,'Thông tin đăng nhập không hợp lệ.')
             url = request.META.get('HTTP_REFERER')
             try:
                 query = requests.utils.urlparse(url).query
@@ -116,7 +117,7 @@ def login(request):
             except:
                 return redirect('dashboard')
         else:
-            messages.error(request,'Invalid login credentials')
+            messages.error(request,'Thông tin đăng nhập không hợp lệ')
             return redirect('login')
     return render(request, 'accounts/login.html')
 
@@ -124,7 +125,7 @@ def login(request):
 @login_required(login_url = 'login')
 def logout(request):
     auth.logout(request)
-    messages.success(request, 'You are logged out.')
+    messages.success(request, 'Bạn đã đăng xuất.')
     return redirect('login') 
 
 def activate(request, uidb64,token):
@@ -137,7 +138,7 @@ def activate(request, uidb64,token):
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
-        messages.success(request, 'Congratulations! Your account is activated.')
+        messages.success(request, 'Chúc mừng! Tài khoản của bạn đã được kích hoạt.')
         return redirect('login')
     else:
         messages.error(request, 'Invalid activation link')
@@ -146,7 +147,15 @@ def activate(request, uidb64,token):
 
 @login_required(login_url ='login')
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+    orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+    orders_count = orders.count()
+
+    userprofile = UserProfile.objects.get(user_id=request.user.id)
+    context = {
+        'orders_count': orders_count,
+        'userprofile': userprofile,
+    }
+    return render(request, 'accounts/dashboard.html', context)
 
 def forgotPassword(request):
     if request.method == 'POST':
@@ -167,11 +176,11 @@ def forgotPassword(request):
             send_email = EmailMessage(mail_subject, message, to=[to_email])
             send_email.send()
 
-            messages.success(request, 'Password reset email has been sent to your email address')
+            messages.success(request, 'Email đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn')
             return redirect('login')
 
         else:
-            messages.error(request, 'Account does not exist!')
+            messages.error(request, 'Tài khoản không tồn tại!')
             return redirect('forgotPassword')
     return render(request, 'accounts/forgotPassword.html')
 
@@ -185,10 +194,10 @@ def resetPassword_validate(request, uidb64,token):
 
     if user is not None and default_token_generator.check_token(user, token):
         request.session['uid'] = uid
-        messages.success(request, 'Please reset your password')
+        messages.success(request, 'Hãy đặt lại mật khẩu của bạn')
         return redirect('resetPassword')
     else:
-        messages.error(request, 'This link has been expired!')
+        messages.error(request, 'Liên kết này đã hết hạn!')
         return redirect('login')
 
 
@@ -202,10 +211,99 @@ def resetPassword(request):
             user = Account.objects.get(pk=uid)
             user.set_password(password)
             user.save()
-            messages.success(request, 'Password reset successful')
+            messages.success(request, 'Đặt lại mật khẩu thành công')
             return redirect('login')
         else:
-            messages.error(request, 'Password do not match!')
+            messages.error(request, 'Mật khẩu không khớp!')
             return redirect('resetPassword')
     else:
         return render(request, 'accounts/resetPassword.html')
+
+def my_orders(request):
+    orders = Order.objects.filter(user=request.user, is_ordered=True).order_by('-created_at')
+    context = {
+        'orders' : orders,
+    }
+    return render(request, 'accounts/my_orders.html', context)
+
+
+@login_required(login_url='login')
+def edit_profile(request):
+    userprofile = get_object_or_404(UserProfile, user=request.user)
+    if request.method == 'POST':
+        user_form = UserForm(request.POST, instance=request.user)
+        profile_form = UserProfileForm(request.POST, request.FILES, instance=userprofile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Hồ sơ của bạn đã được cập nhật.')
+            return redirect('edit_profile')
+
+        if user_form.is_valid() and profile_form.is_valid():
+            # Kiểm tra nếu có trường bị bỏ trống
+            if not user_form.cleaned_data.get('first_name') or not user_form.cleaned_data.get('last_name') :
+                messages.error(request, 'Họ và tên không được để trống.')
+            elif not profile_form.cleaned_data.get('phone_number'):
+                messages.error(request, 'Số điện thoại không được để trống.')
+            else:
+                user_form.save()
+                profile_form.save()
+                messages.success(request, 'Hồ sơ của bạn đã được cập nhật.')
+                return redirect('edit_profile')
+            # if  not user_form.cleaned_data('country'):
+            #     messages.error(request, 'Tỉnh thành phố không được bỏ trống')
+        else:
+            messages.error(request, 'Có lỗi xảy ra, vui lòng kiểm tra lại thông tin.')
+        
+    else:
+        user_form = UserForm(instance=request.user)
+        profile_form = UserProfileForm(instance=userprofile)
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'userprofile': userprofile,
+    }
+    return render(request, 'accounts/edit_profile.html', context)
+
+
+@login_required(login_url='login')
+def change_password(request):
+    if request.method == 'POST':
+        current_password = request.POST['current_password']
+        new_password = request.POST['new_password']
+        confirm_password = request.POST['confirm_password']
+
+        user = Account.objects.get(username__exact=request.user.username)
+
+        if new_password == confirm_password:
+            success = user.check_password(current_password)
+            if success:
+                user.set_password(new_password)
+                user.save()
+                # auth.logout(request)
+                messages.success(request, 'Đã cập nhật mật khẩu thành công.')
+                return redirect('change_password')
+            else:
+                messages.error(request, 'Vui lòng nhập mật khẩu hiện tại hợp lệ')
+                return redirect('change_password')
+        else:
+            messages.error(request, 'Mật khẩu không hợp lệ!')
+            return redirect('change_password')
+    return render(request, 'accounts/change_password.html')
+
+
+
+@login_required(login_url='login')
+def order_detail(request, order_id):
+    order_detail = OrderProduct.objects.filter(order__order_number=order_id)
+    order = Order.objects.get(order_number=order_id)
+    subtotal = 0
+    for i in order_detail:
+        subtotal += i.product_price * i.quantity
+
+    context = {
+        'order_detail': order_detail,
+        'order': order,
+        'subtotal': subtotal,
+    }
+    return render(request, 'accounts/order_detail.html', context)

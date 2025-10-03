@@ -24,6 +24,7 @@ class Migration(migrations.Migration):
                 ('phone', models.CharField(max_length=15)),
                 ('email', models.EmailField(max_length=50)),
                 ('address_line_1', models.CharField(max_length=50)),
+                #('address_line_2', models.CharField(blank=True, max_length=50)),
                 ('country', models.CharField(max_length=50)),
                 ('state', models.CharField(max_length=50)),
                 ('city', models.CharField(max_length=50)),
