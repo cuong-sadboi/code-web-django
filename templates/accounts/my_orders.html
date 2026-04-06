@@ -20,7 +20,7 @@
                         <table class="table table-hover">
                             <thead>
                               <tr>
-                                <th scope="col">Order #</th>
+										<th scope="col">Đơn hàng #</th>
                                 <th scope="col">Tên người mua</th>
                                 <th scope="col">Số điện thoại</th>
                                 <th scope="col">Tổng tiền</th>
@@ -33,7 +33,7 @@
                                 <th scope="row"><a href="{% url 'order_detail' order.order_number %}">{{order.order_number}}</a></th>
                                 <td>{{order.full_name}}</td>
                                 <td>{{order.phone}}</td>
-                                <td>VNĐ{{order.order_total}}</td>
+                                <td>$ {{order.order_total}} USD</td>
                                 <td>{{order.created_at}}</td>
                             </tr>
                               {% endfor %}

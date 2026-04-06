@@ -14,25 +14,61 @@ from orders.models import OrderProduct
 
 def store(request, category_slug=None):
     categories = None
-    products =None
+    products = None
 
-    if category_slug != None:
+    # Read and validate price range filters from query string.
+    selected_min_price = request.GET.get('min_price', '')
+    selected_max_price = request.GET.get('max_price', '')
+
+    min_price = None
+    max_price = None
+
+    try:
+        if selected_min_price != '':
+            min_price = max(0, int(selected_min_price))
+    except (TypeError, ValueError):
+        min_price = None
+        selected_min_price = ''
+
+    try:
+        if selected_max_price != '':
+            max_price = max(0, int(selected_max_price))
+    except (TypeError, ValueError):
+        max_price = None
+        selected_max_price = ''
+
+    if min_price is not None and max_price is not None and min_price > max_price:
+        min_price, max_price = max_price, min_price
+        selected_min_price = str(min_price)
+        selected_max_price = str(max_price)
+
+    if category_slug is not None:
         categories = get_object_or_404(Category, slug=category_slug)
         products = Product.objects.filter(category=categories, is_available=True)
-        paginator = Paginator(products, 10)
-        page = request.GET.get('page')
-        paged_products = paginator.get_page(page)
-        product_count = products.count()
     else:
-        products = Product.objects.all().filter(is_available=True).order_by('id')
-        paginator = Paginator(products, 10)
-        page = request.GET.get('page')
-        paged_products = paginator.get_page(page)
-        product_count = products.count()
+        products = Product.objects.filter(is_available=True).order_by('id')
+
+    if min_price is not None:
+        products = products.filter(price__gte=min_price)
+    if max_price is not None:
+        products = products.filter(price__lte=max_price)
+
+    paginator = Paginator(products, 10)
+    page = request.GET.get('page')
+    paged_products = paginator.get_page(page)
+    product_count = products.count()
+
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        query_params.pop('page')
+    filter_query = query_params.urlencode()
 
     context = {
         'products': paged_products,
         'product_count': product_count,
+        'selected_min_price': selected_min_price,
+        'selected_max_price': selected_max_price,
+        'filter_query': filter_query,
     }
 
     return render(request, 'store/store.html',context)
@@ -92,7 +128,7 @@ def submit_review(request, product_id):
             reviews = ReviewRating.objects.get(user__id=request.user.id, product__id=product_id)
             form = ReviewForm(request.POST, instance=reviews)
             form.save()
-            messages.success(request, 'Thank you! Your review has been updated.')
+            messages.success(request, 'Cảm ơn bạn! Đánh giá đã được cập nhật.')
             return redirect(url)
         except ReviewRating.DoesNotExist:
             form = ReviewForm(request.POST)
@@ -105,6 +141,6 @@ def submit_review(request, product_id):
                 data.product_id = product_id
                 data.user_id = request.user.id
                 data.save()
-                messages.success(request, 'Thank you! Your review has been submitted.')
+                messages.success(request, 'Cảm ơn bạn! Đánh giá đã được gửi.')
                 return redirect(url)
 

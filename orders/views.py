@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
+from decimal import Decimal, ROUND_HALF_UP
 from carts.models import CartItem
 from .forms import OrderForm
 import datetime
@@ -8,6 +9,7 @@ import json
 from store.models import Product
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -60,7 +62,7 @@ def payments(request):
     CartItem.objects.filter(user=request.user).delete()
 
     # Send order recieved email to customer
-    mail_subject = 'Thank you for your order!'
+    mail_subject = 'Cảm ơn bạn đã đặt hàng!'
     message = render_to_string('orders/order_recieved_email.html', {
         'user': request.user,
         'order': order,
@@ -85,12 +87,13 @@ def place_order(request, total=0, quantity=0,):
     if cart_count <= 0:
         return redirect('store')
     
-    grand_total = 0
-    tax = 0
+    total = Decimal('0')
+    grand_total = Decimal('0')
+    tax = Decimal('0')
     for cart_item in cart_items:
-        total += (cart_item.product.price * cart_item.quantity)
+        total += Decimal(cart_item.product.price) * cart_item.quantity
         quantity += cart_item.quantity
-    tax = (2 * total)/100
+    tax = (total * Decimal('0.02')).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
     grand_total = total + tax
     
     if request.method == 'POST':
@@ -137,19 +140,20 @@ def place_order(request, total=0, quantity=0,):
         return redirect('checkout')
 
 
+@login_required(login_url='login')
 def order_complete(request):
     order_number = request.GET.get('order_number')
     transID = request.GET.get('payment_id')
 
     try:
-        order = Order.objects.get(order_number=order_number, is_ordered=True)
-        ordered_products = OrderProduct.objects.filter(order_id=order.id)
+        order = Order.objects.get(order_number=order_number, is_ordered=True, user=request.user)
+        ordered_products = OrderProduct.objects.filter(order_id=order.id, user=request.user)
 
         subtotal = 0
         for i in ordered_products:
             subtotal += i.product_price * i.quantity
 
-        payment = Payment.objects.get(payment_id=transID)
+        payment = Payment.objects.get(payment_id=transID, user=request.user, id=order.payment_id)
 
         context = {
             'order': order,

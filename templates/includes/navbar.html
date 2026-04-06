@@ -2,24 +2,24 @@
 
 
 <header class="section-header">
-    <nav class="navbar p-md-0 navbar-expand-sm navbar-light border-bottom">
+  <nav class="navbar p-md-0 navbar-expand-sm navbar-light border-bottom nav-topline">
     <div class="container">
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTop4" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarTop4">
-        <ul class="navbar-nav mr-auto">
+        <ul class="navbar-nav mr-auto nav-mini">
             <li class="nav-item dropdown">
-                 <a href="#" class="nav-link">   Tiếng Việt </a>
+             <a href="#" class="nav-link"><i class="fa fa-globe mr-1"></i> Tiếng Việt </a>
                 
             </li>
             <li class="nav-item dropdown">
-                <a href="#" class="nav-link"> USD </a>
+            <a href="#" class="nav-link"><i class="fa fa-money mr-1"></i> USD </a>
             </li>
         </ul>
-        <ul class="navbar-nav">
-            <li><a href="#" class="nav-link"> <i class="fa fa-envelope"></i> Email </a></li>
-            <li><a href="#" class="nav-link"> <i class="fa fa-phone"></i> Call us </a></li>
+        <ul class="navbar-nav nav-mini nav-contact">
+          <li><a href="mailto:cuongdelldz@gmail.com" class="nav-link"> <i class="fa fa-envelope"></i> cuongdelldz@gmail.com </a></li>
+          <li><a href="tel:+84384235296" class="nav-link"> <i class="fa fa-phone"></i> +84 384 235 296 </a></li>
         </ul> <!-- list-inline //  -->
       </div> <!-- navbar-collapse .// -->
     </div> <!-- container //  -->
@@ -33,13 +33,13 @@
                 <img class="logo" src="{% static './images/hihi.png' %}">
             </a> <!-- brand-wrap.// -->
         </div>
-        <div class="col-lg col-sm col-md col-6 flex-grow-0">
-          <div class="category-wrap dropdown d-inline-block float-right">
-            <div class="dropdown">
-              <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <div class="col-lg col-sm col-md col-6 flex-grow-0 d-none d-md-block">
+          <div class="category-wrap d-inline-block float-right">
+            <div class="dropdown category-dropdown">
+              <button class="btn btn-primary dropdown-toggle category-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa fa-bars"></i> Tất cả danh mục
               </button>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <div class="dropdown-menu category-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" href="{% url 'store' %}">Tất cả sản phẩm </a>
                 {% for category in links %}
                 <a class="dropdown-item" href="{{ category.get_url }}">{{ category.category_name }} </a>
@@ -48,11 +48,11 @@
             </div>
           </div>  <!-- category-wrap.// -->
         </div> <!-- col.// -->
-        <a href="{% url 'store' %}" class="btn btn-outline-primary">Cửa hàng</a>
+        <a href="{% url 'store' %}" class="btn btn-outline-primary nav-store-btn">Cửa hàng</a>
         <div class="col-lg  col-md-6 col-sm-12 col">
             <form action="{% url 'search' %}" class="search" method='GET'>
                 <div class="input-group w-100">
-                    <input type="text" class="form-control" style="width:60%;" placeholder="Tìm kiếm" name="keyword">
+              <input type="text" class="form-control" style="width:60%;" placeholder="Tìm laptop, bàn phím, tai nghe..." name="keyword">
                     
                     <div class="input-group-append">
                       <button class="btn btn-primary" type="submit">
@@ -81,7 +81,7 @@
                           </div>
                       </div>
                         {% endif %}
-                        <a href="{% url 'cart' %}" class="widget-header pl-3 ml-3">
+                        <a href="{% url 'cart' %}" class="widget-header pl-3 ml-3 nav-cart-link">
                             <div class="icon icon-sm rounded-circle border"><i class="fa fa-shopping-cart"></i></div>
                             <span class="badge badge-pill badge-danger notify">{{cart_count}}</span>
                         </a>

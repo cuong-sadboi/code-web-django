@@ -13,6 +13,44 @@
 
 <div class="intro-banner-wrap">
 	<img src="{% static 'images/banners/banner.png' %}" class="img-fluid rounded">
+
+</div>
+
+<div class="feature-strip row no-gutters mt-4">
+	<div class="col-12 col-md-4">
+		<div class="feature-card">
+			<i class="fa fa-truck"></i>
+			<div>
+				<h6>Giao nhanh toàn quốc</h6>
+				<p>Đóng gói kỹ, theo dõi đơn hàng rõ ràng.</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-4">
+		<div class="feature-card">
+			<i class="fa fa-shield"></i>
+			<div>
+				<h6>Bảo hành minh bạch</h6>
+				<p>Hỗ trợ đổi trả theo chính sách của cửa hàng.</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-4">
+		<div class="feature-card">
+			<i class="fa fa-headphones"></i>
+			<div>
+				<h6>Tư vấn 1-1</h6>
+				<p>Gợi ý phù hợp theo nhu cầu và ngân sách.</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="quick-categories mt-3">
+	<a href="{% url 'store' %}" class="quick-pill">Tất cả</a>
+	{% for category in links|slice:':8' %}
+	<a href="{{ category.get_url }}" class="quick-pill">{{ category.category_name }}</a>
+	{% endfor %}
 </div>
 
 </div> <!-- container //  -->
@@ -26,17 +64,19 @@
 <header class="section-heading">
 	<a href="{% url 'store' %}" class="btn btn-outline-primary float-right">Xem tất cả</a>
 	<h3 class="section-title">Sản phẩm phổ biến</h3>
+	<p class="section-subtitle">Gợi ý các sản phẩm được khách hàng yêu thích nhất tuần này.</p>
 </header><!-- sect-heading -->
 
 	
 <div class="row">
 	{% for product in products %}
-	<div class="col-md-3">
+	<div class="col-6 col-md-4 col-lg-3">
 		<div class="card card-product-grid">
+			<div class="card-badge">Nổi bật</div>
 			<a href="{{ product.get_url }}" class="img-wrap"> <img src="{{ product.images.url }}"> </a>
 			<figcaption class="info-wrap">
 				<a href="{{ product.get_url }}" class="title">{{ product.product_name }}</a>
-				<div class="price mt-1">VNĐ {{ product.price }}</div> <!-- price-wrap.// -->
+				<div class="price mt-1">$ {{ product.price }} USD</div>
 				<div class="rating-star">
 					<span>
 						<i class="fa fa-star{% if product.averageReview < 0.5 %}-o{% elif product.averageReview >= 0.5 and product.averageReview < 1 %}-half-o {% endif %}" aria-hidden="true"></i>
@@ -46,6 +86,8 @@
 						<i class="fa fa-star{% if product.averageReview < 4.5 %}-o{% elif product.averageReview >= 4.5 and product.averageReview < 5 %}-half-o {% endif %}" aria-hidden="true"></i>
 						</span>
 				</div>
+				<small class="review-count">{{ product.countReview }} đánh giá</small>
+				<a href="{{ product.get_url }}" class="btn btn-sm btn-primary btn-block mt-2">Xem chi tiết</a>
 			</figcaption>
 		</div>
 	</div> <!-- col.// -->
@@ -55,13 +97,4 @@
 </div><!-- container // -->
 </section>
 <!-- ========================= SECTION  END// ========================= -->
-
-
-
-
-
-
-</body>
-</html>
-
 {% endblock %}

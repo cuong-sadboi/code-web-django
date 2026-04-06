@@ -10,22 +10,56 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+
+
+def load_env_file(file_path):
+    if not file_path.exists():
+        return
+
+    with file_path.open(encoding='utf-8') as env_file:
+        for raw_line in env_file:
+            line = raw_line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            os.environ.setdefault(key, value)
+
+
+load_env_file(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'n#l5^f&w!rzq6i(la$drookd93kedj+cd@)0knk7z^v9)h2ym1'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        'DJANGO_SECRET_KEY is missing. Create a .env file in project root or set env variable.'
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = []
+allowed_hosts_env = os.getenv('DJANGO_ALLOWED_HOSTS', 'cuong1512.pythonanywhere.com')
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in allowed_hosts_env.split(',')
+    if host.strip()
+]
+if not ALLOWED_HOSTS:
+    raise ImproperlyConfigured(
+        'DJANGO_ALLOWED_HOSTS is empty. Set DJANGO_ALLOWED_HOSTS with at least one host.'
+    )
 
 
 # Application definition
@@ -144,8 +178,9 @@ MESSAGE_TAGS = {
 
 
 #SMTP configuration
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'cuongdelldz@gmail.com'
-EMAIL_HOST_PASSWORD = 'fhsc afci bxzx enia'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '').strip()
+EMAIL_HOST_PASSWORD = ''.join(os.getenv('EMAIL_HOST_PASSWORD', '').split())
 EMAIL_USE_TLS = True

@@ -13,10 +13,14 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
+import logging
 
 from carts.views import _cart_id
 from carts.models import Cart, CartItem
 import requests
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -48,7 +52,16 @@ def register(request):
             })
             to_email = email
             send_email = EmailMessage(mail_subject, message, to=[to_email])
-            send_email.send()
+            try:
+                send_email.send()
+            except Exception as exc:
+                logger.exception('Failed to send activation email: %s', exc)
+                user.delete()
+                messages.error(
+                    request,
+                    'Không gửi được email xác thực. Kiểm tra EMAIL_HOST_USER/EMAIL_HOST_PASSWORD trong .env (Gmail app password không chứa khoảng trắng).'
+                )
+                return redirect('register')
             #messages.success(request, 'Registration successful.')
             #messages.success(request, 'Thank you for registering with us. We have sent you a verification email to your email address [cuongdelldz@gmail.com]. Please verify it.')
             return redirect('/accounts/login/?commad=verification&email='+email)
@@ -107,7 +120,7 @@ def login(request):
             except:
                 pass
             auth.login(request, user)
-            messages.success(request,'Thông tin đăng nhập không hợp lệ.')
+            messages.success(request,'Đăng nhập thành công.')
             url = request.META.get('HTTP_REFERER')
             try:
                 query = requests.utils.urlparse(url).query
@@ -143,7 +156,7 @@ def activate(request, uidb64,token):
         messages.success(request, 'Chúc mừng! Tài khoản của bạn đã được kích hoạt.')
         return redirect('login')
     else:
-        messages.error(request, 'Invalid activation link')
+        messages.error(request, 'Liên kết kích hoạt không hợp lệ')
         return redirect('register')
     
 
@@ -167,7 +180,7 @@ def forgotPassword(request):
 
             #reset password email
             current_site = get_current_site(request)
-            mail_subject = 'Reset your account'
+            mail_subject = 'Đặt lại mật khẩu tài khoản'
             message = render_to_string('accounts/reset_password_email.html', {
                 'user': user,
                 'domain': current_site,
@@ -176,7 +189,12 @@ def forgotPassword(request):
             })
             to_email = email
             send_email = EmailMessage(mail_subject, message, to=[to_email])
-            send_email.send()
+            try:
+                send_email.send()
+            except Exception as exc:
+                logger.exception('Failed to send reset password email: %s', exc)
+                messages.error(request, 'Không gửi được email đặt lại mật khẩu. Vui lòng thử lại sau.')
+                return redirect('forgotPassword')
 
             messages.success(request, 'Email đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn')
             return redirect('login')
@@ -297,8 +315,8 @@ def change_password(request):
 
 @login_required(login_url='login')
 def order_detail(request, order_id):
-    order_detail = OrderProduct.objects.filter(order__order_number=order_id)
-    order = Order.objects.get(order_number=order_id)
+    order = get_object_or_404(Order, order_number=order_id, user=request.user, is_ordered=True)
+    order_detail = OrderProduct.objects.filter(order=order, user=request.user)
     subtotal = 0
     for i in order_detail:
         subtotal += i.product_price * i.quantity

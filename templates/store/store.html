@@ -6,9 +6,9 @@
 <section class="section-pagetop bg">
     <div class="container">
         {% if 'search' in request.path %}
-        <h2 class="title-page">Search Result</h2>
+        <h2 class="title-page">Kết quả tìm kiếm</h2>
         {% else %}
-        <h2 class="title-page">Our Store</h2>
+        <h2 class="title-page">Cửa hàng công nghệ</h2>
         {% endif %}
     </div> <!-- container //  -->
     </section>
@@ -22,18 +22,18 @@
         <aside class="col-md-3">
             
     <div class="card">
-        <article class="filter-group">
+        <article class="filter-group store-filter">
             <header class="card-header">
                 <a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="true" class="">
                     <i class="icon-control fa fa-chevron-down"></i>
-                    <h6 class="title">Categories</h6>
+                    <h6 class="title">Danh mục</h6>
                 </a>
             </header>
             <div class="filter-content collapse show" id="collapse_1" style="">
                 <div class="card-body">
                     
                     <ul class="list-menu">
-                        <li><a href="{% url 'store' %}">All Products  </a></li>
+                        <li><a href="{% url 'store' %}">Tất cả sản phẩm</a></li>
                         {% for category in links %}
                         <li><a href="{{ category.get_url }}">{{ category.category_name }}  </a></li>
                         {% endfor %}
@@ -42,76 +42,47 @@
                 </div> <!-- card-body.// -->
             </div>
         </article> <!-- filter-group  .// -->
-        <article class="filter-group">
-            <header class="card-header">
-                <a href="#" data-toggle="collapse" data-target="#collapse_4" aria-expanded="true" class="">
-                    <i class="icon-control fa fa-chevron-down"></i>
-                    <h6 class="title">Sizes </h6>
-                </a>
-            </header>
-            <div class="filter-content collapse show" id="collapse_4" style="">
-                <div class="card-body">
-                  <label class="checkbox-btn">
-                    <input type="checkbox">
-                    <span class="btn btn-light"> XS </span>
-                  </label>
-    
-                  <label class="checkbox-btn">
-                    <input type="checkbox">
-                    <span class="btn btn-light"> SM </span>
-                  </label>
-    
-                  <label class="checkbox-btn">
-                    <input type="checkbox">
-                    <span class="btn btn-light"> LG </span>
-                  </label>
-    
-                  <label class="checkbox-btn">
-                    <input type="checkbox">
-                    <span class="btn btn-light"> XXL </span>
-                  </label>
-            </div><!-- card-body.// -->
-            </div>
-        </article> <!-- filter-group .// -->
-        
-        <article class="filter-group">
+
+        <article class="filter-group store-filter">
             <header class="card-header">
                 <a href="#" data-toggle="collapse" data-target="#collapse_3" aria-expanded="true" class="">
                     <i class="icon-control fa fa-chevron-down"></i>
-                    <h6 class="title">Price range </h6>
+                    <h6 class="title">Khoảng giá </h6>
                 </a>
             </header>
             <div class="filter-content collapse show" id="collapse_3" style="">
                 <div class="card-body">
-                    
-                    <div class="form-row">
-                    <div class="form-group col-md-6">
-                      <label>Min</label>
-                      <!-- <input class="form-control" placeholder="$0" type="number"> -->
-                          <select class="mr-2 form-control">
-                            <option value="0">$0</option>
-                            <option value="50">$50</option>
-                            <option value="100">$100</option>
-                            <option value="150">$150</option>
-                            <option value="200">$200</option>
-                            <option value="500">$500</option>
-                            <option value="1000">$1000</option>
-                        </select>
-                    </div>
-                    <div class="form-group text-right col-md-6">
-                      <label>Max</label>
-                          <select class="mr-2 form-control">
-                            <option value="50">$50</option>
-                            <option value="100">$100</option>
-                            <option value="150">$150</option>
-                            <option value="200">$200</option>
-                            <option value="500">$500</option>
-                            <option value="1000">$1000</option>
-                            <option value="2000">$2000+</option>
-                        </select>
-                    </div>
-                    </div> <!-- form-row.// -->
-                    <button class="btn btn-block btn-primary">Apply</button>
+                    <form method="GET" action="">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Thấp nhất</label>
+                                <select name="min_price" class="mr-2 form-control">
+                                    <option value="">Không giới hạn</option>
+                                    <option value="0" {% if selected_min_price == '0' %}selected{% endif %}>$0</option>
+                                    <option value="50" {% if selected_min_price == '50' %}selected{% endif %}>$50</option>
+                                    <option value="100" {% if selected_min_price == '100' %}selected{% endif %}>$100</option>
+                                    <option value="150" {% if selected_min_price == '150' %}selected{% endif %}>$150</option>
+                                    <option value="200" {% if selected_min_price == '200' %}selected{% endif %}>$200</option>
+                                    <option value="500" {% if selected_min_price == '500' %}selected{% endif %}>$500</option>
+                                    <option value="1000" {% if selected_min_price == '1000' %}selected{% endif %}>$1000</option>
+                                </select>
+                            </div>
+                            <div class="form-group text-right col-md-6">
+                                <label>Cao nhất</label>
+                                <select name="max_price" class="mr-2 form-control">
+                                    <option value="">Không giới hạn</option>
+                                    <option value="50" {% if selected_max_price == '50' %}selected{% endif %}>$50</option>
+                                    <option value="100" {% if selected_max_price == '100' %}selected{% endif %}>$100</option>
+                                    <option value="150" {% if selected_max_price == '150' %}selected{% endif %}>$150</option>
+                                    <option value="200" {% if selected_max_price == '200' %}selected{% endif %}>$200</option>
+                                    <option value="500" {% if selected_max_price == '500' %}selected{% endif %}>$500</option>
+                                    <option value="1000" {% if selected_max_price == '1000' %}selected{% endif %}>$1000</option>
+                                    <option value="2000" {% if selected_max_price == '2000' %}selected{% endif %}>$2000</option>
+                                </select>
+                            </div>
+                        </div> <!-- form-row.// -->
+                        <button type="submit" class="btn btn-block btn-primary">Áp dụng</button>
+                    </form>
                 </div><!-- card-body.// -->
             </div>
         </article> <!-- filter-group .// -->
@@ -123,7 +94,7 @@
     
     <header class="border-bottom mb-4 pb-3">
             <div class="form-inline">
-                <span class="mr-md-auto"><b>{{ product_count }}</b> items found </span>
+                <span class="mr-md-auto"><b>{{ product_count }}</b> sản phẩm </span>
                 
             </div>
     </header><!-- sect-heading -->
@@ -131,7 +102,7 @@
     <div class="row">
         {% if products %}
         {% for product in products %}
-        <div class="col-md-4">
+        <div class="col-6 col-md-4">
             <figure class="card card-product-grid">
                 <div class="img-wrap"> 
                     
@@ -142,17 +113,17 @@
                     <div class="fix-height">
                         <a href="{{ product.get_url }}" class="title">{{ product.product_name }}</a>
                         <div class="price-wrap mt-2">
-                            <span class="price">$ {{ product.price }}</span>
+                            <span class="price">$ {{ product.price }} USD</span>
                         </div> <!-- price-wrap.// -->
                     </div>
-                    <a href="{{ product.get_url }}" class="btn btn-block btn-primary">View Details </a>
+                    <a href="{{ product.get_url }}" class="btn btn-block btn-primary">Xem chi tiết</a>
                 </figcaption>
             </figure>
         </div> <!-- col.// -->
         {% endfor %}
         {% else %}
         <div>
-            <h2>No result found, Please try again.</h2>
+            <h2>Không tìm thấy kết quả, vui lòng thử từ khóa khác.</h2>
         </div>
         {% endif %}
     </div> <!-- row end.// -->
@@ -162,23 +133,23 @@
         {% if products.has_other_pages %}
       <ul class="pagination">
         {% if products.has_previous %}
-        <li class="page-item"><a class="page-link" href="?page={{products.previous_page_number}}">Previous</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{products.previous_page_number}}{% if filter_query %}&{{filter_query}}{% endif %}">Trước</a></li>
         {% else %}
-        <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+        <li class="page-item disabled"><a class="page-link" href="#">Trước</a></li>
         {% endif %}
 
         {% for i in products.paginator.page_range %}
             {% if products.number == i %}
                 <li class="page-item active"><a class="page-link" href="#">{{i}}</a></li>
             {% else %}
-                <li class="page-item"><a class="page-link" href="?page={{i}}">{{i}}</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{i}}{% if filter_query %}&{{filter_query}}{% endif %}">{{i}}</a></li>
             {% endif %}
             {% endfor %}
 
             {% if products.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{products.next_page_number}}">Next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{products.next_page_number}}{% if filter_query %}&{{filter_query}}{% endif %}">Sau</a></li>
         {% else %}
-            <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+            <li class="page-item disabled"><a class="page-link" href="#">Sau</a></li>
         {% endif %}
       </ul>
       {% endif %}

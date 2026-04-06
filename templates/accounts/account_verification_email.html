@@ -1,10 +1,10 @@
 {% autoescape off %}
   
-Hi {{user.first_name}},
+Xin chào {{user.first_name}},
 
-Please click on below link to confirm your registration
+Vui lòng bấm vào liên kết bên dưới để xác nhận đăng ký tài khoản:
 http://{{domain}}{% url 'activate' uidb64=uid token=token %}
 
-If you it's not you, please ignore this email.
+Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.
 
 {% endautoescape %}
