@@ -79,6 +79,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'codeweb.django_firewall_middleware.DjangoFirewallMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -184,3 +185,6 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '').strip()
 EMAIL_HOST_PASSWORD = ''.join(os.getenv('EMAIL_HOST_PASSWORD', '').split())
 EMAIL_USE_TLS = True
+
+FIREWALL_BACKEND_URL = "https://traffic-bot-backend-m2x1.onrender.com"  # URL của NestJS Backend
+FIREWALL_CACHE_TTL = 60                         # Thời gian cache kết quả check IP (giây)
